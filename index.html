@@ -61,60 +61,68 @@
     <script>
         async function loadReport() {
             try {
-                const response = await fetch('reports/trufflehog_report.json');
+                const response = await fetch('trufflehog_report.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const report = await response.json();
+                const text = await response.text();
 
-                // Access the relevant data
-                const metadata = report.SourceMetadata.Data.Github;
-                const detectorName = report.DetectorName;
-                const rawSecret = report.Raw;
-                const verified = report.Verified ? "Yes" : "No";
+                // Split the text by newlines, assuming each line is a separate JSON object
+                const lines = text.split('\n').filter(line => line.trim() !== '');
 
                 const tableBody = document.getElementById('report-table').querySelector('tbody');
 
-                const row = document.createElement('tr');
+                lines.forEach(line => {
+                    const entry = JSON.parse(line);
 
-                const repoCell = document.createElement('td');
-                repoCell.textContent = metadata.repository;
-                row.appendChild(repoCell);
+                    const metadata = entry.SourceMetadata.Data.Github;
+                    const detectorName = entry.DetectorName;
+                    const rawSecret = entry.Raw;
+                    const commit = metadata.commit;
+                    const date = metadata.timestamp;
+                    const link = metadata.link;
 
-                const fileCell = document.createElement('td');
-                fileCell.textContent = metadata.file;
-                row.appendChild(fileCell);
+                    const row = document.createElement('tr');
 
-                const lineCell = document.createElement('td');
-                lineCell.textContent = metadata.line;
-                row.appendChild(lineCell);
+                    const repoCell = document.createElement('td');
+                    repoCell.textContent = metadata.repository;
+                    row.appendChild(repoCell);
 
-                const detectorCell = document.createElement('td');
-                detectorCell.textContent = detectorName;
-                row.appendChild(detectorCell);
+                    const fileCell = document.createElement('td');
+                    fileCell.textContent = metadata.file;
+                    row.appendChild(fileCell);
 
-                const secretCell = document.createElement('td');
-                secretCell.textContent = rawSecret;
-                secretCell.classList.add('high-entropy');
-                row.appendChild(secretCell);
+                    const lineCell = document.createElement('td');
+                    lineCell.textContent = metadata.line;
+                    row.appendChild(lineCell);
 
-                const commitCell = document.createElement('td');
-                commitCell.textContent = metadata.commit;
-                row.appendChild(commitCell);
+                    const detectorCell = document.createElement('td');
+                    detectorCell.textContent = detectorName;
+                    row.appendChild(detectorCell);
 
-                const dateCell = document.createElement('td');
-                dateCell.textContent = new Date(metadata.timestamp).toLocaleString();
-                row.appendChild(dateCell);
+                    const secretCell = document.createElement('td');
+                    secretCell.textContent = rawSecret;
+                    secretCell.classList.add('high-entropy');
+                    row.appendChild(secretCell);
 
-                const linkCell = document.createElement('td');
-                const link = document.createElement('a');
-                link.href = metadata.link;
-                link.textContent = "View in GitHub";
-                link.target = "_blank";
-                linkCell.appendChild(link);
-                row.appendChild(linkCell);
+                    const commitCell = document.createElement('td');
+                    commitCell.textContent = commit;
+                    row.appendChild(commitCell);
 
-                tableBody.appendChild(row);
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = new Date(date).toLocaleString();
+                    row.appendChild(dateCell);
+
+                    const linkCell = document.createElement('td');
+                    const linkElement = document.createElement('a');
+                    linkElement.href = link;
+                    linkElement.textContent = "View in GitHub";
+                    linkElement.target = "_blank";
+                    linkCell.appendChild(linkElement);
+                    row.appendChild(linkCell);
+
+                    tableBody.appendChild(row);
+                });
 
                 document.getElementById('status').style.display = 'none';
                 document.getElementById('report-table').style.display = 'block';
