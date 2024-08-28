@@ -30,10 +30,10 @@ jobs:
 
     - name: Commit and Push Reports
       env:
-        GITHUB_TOKEN: ${{ secrets.PAT_PUSH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PUSH_TOKEN }}
       run: |
         git config --local user.email "passioneee@gmail.com"
         git config --local user.name "Vignesh"
         git add reports/
         git commit -m "Add TruffleHog scan reports"
-        git push https://${{ secrets.PAT_PUSH_TOKEN }}@github.com/n3rd-vignesh/centralised-repo-trufflehog.git main
+        git push https://${{ secrets.PUSH_TOKEN }}@github.com/vigneshwaran-misp/trufflehog-scanner.git main
