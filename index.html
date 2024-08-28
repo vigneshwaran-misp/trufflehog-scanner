@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruffleHog Scan Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .high-entropy {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>TruffleHog Scan Report</h1>
+    <p id="status">Loading report...</p>
+    <table id="report-table" style="display: none;">
+        <thead>
+            <tr>
+                <th>Repository</th>
+                <th>File</th>
+                <th>Line</th>
+                <th>Detector</th>
+                <th>Secret</th>
+                <th>Commit</th>
+                <th>Date</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Report data will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+
+    <script>
+        async function loadReport() {
+            try {
+                const response = await fetch('reports/trufflehog_report.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const report = await response.json();
+
+                // Access the relevant data
+                const metadata = report.SourceMetadata.Data.Github;
+                const detectorName = report.DetectorName;
+                const rawSecret = report.Raw;
+                const verified = report.Verified ? "Yes" : "No";
+
+                const tableBody = document.getElementById('report-table').querySelector('tbody');
+
+                const row = document.createElement('tr');
+
+                const repoCell = document.createElement('td');
+                repoCell.textContent = metadata.repository;
+                row.appendChild(repoCell);
+
+                const fileCell = document.createElement('td');
+                fileCell.textContent = metadata.file;
+                row.appendChild(fileCell);
+
+                const lineCell = document.createElement('td');
+                lineCell.textContent = metadata.line;
+                row.appendChild(lineCell);
+
+                const detectorCell = document.createElement('td');
+                detectorCell.textContent = detectorName;
+                row.appendChild(detectorCell);
+
+                const secretCell = document.createElement('td');
+                secretCell.textContent = rawSecret;
+                secretCell.classList.add('high-entropy');
+                row.appendChild(secretCell);
+
+                const commitCell = document.createElement('td');
+                commitCell.textContent = metadata.commit;
+                row.appendChild(commitCell);
+
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(metadata.timestamp).toLocaleString();
+                row.appendChild(dateCell);
+
+                const linkCell = document.createElement('td');
+                const link = document.createElement('a');
+                link.href = metadata.link;
+                link.textContent = "View in GitHub";
+                link.target = "_blank";
+                linkCell.appendChild(link);
+                row.appendChild(linkCell);
+
+                tableBody.appendChild(row);
+
+                document.getElementById('status').style.display = 'none';
+                document.getElementById('report-table').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading report:', error);
+                document.getElementById('status').textContent = 'Error loading report. Please check the console for details.';
+            }
+        }
+
+        loadReport();
+    </script>
+</body>
+</html>
