@@ -1,0 +1,39 @@
+name: TruffleHog Organization Scan
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  scan-org:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install TruffleHog from GitHub Repo
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+
+    - name: Run TruffleHog scan on organization
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_PUSH_TOKEN }}
+      run: |
+        mkdir -p reports
+        trufflehog --config=.github/config/generic.yml github --org=n3rd-vignesh --token=${{ secrets.PAT_PUSH_TOKEN }} --json > reports/trufflehog_report.json
+
+    - name: Unset Extraheader to Avoid Auth Conflicts
+      run: git config --unset-all http.https://github.com/.extraheader
+
+    - name: Commit and Push Reports
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_PUSH_TOKEN }}
+      run: |
+        git config --local user.email "passioneee@gmail.com"
+        git config --local user.name "Vignesh"
+        git add reports/
+        git commit -m "Add TruffleHog scan reports"
+        git push https://${{ secrets.PAT_PUSH_TOKEN }}@github.com/n3rd-vignesh/centralised-repo-trufflehog.git main
