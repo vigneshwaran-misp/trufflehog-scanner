@@ -61,7 +61,7 @@
     <script>
         async function loadReport() {
             try {
-                const response = await fetch('trufflehog_report.json');
+                const response = await fetch('reports/trufflehog_report.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
