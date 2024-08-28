@@ -59,6 +59,11 @@
     </table>
 
     <script>
+        // Function to convert the timestamp to a valid ISO format
+        function parseDate(dateString) {
+            return new Date(dateString.replace(' ', 'T').replace(' +0000', 'Z'));
+        }
+
         async function loadReport() {
             try {
                 const response = await fetch('reports/trufflehog_report.json');
@@ -110,7 +115,8 @@
                     row.appendChild(commitCell);
 
                     const dateCell = document.createElement('td');
-                    dateCell.textContent = new Date(date).toLocaleString();
+                    const parsedDate = parseDate(date);
+                    dateCell.textContent = parsedDate.toLocaleString();
                     row.appendChild(dateCell);
 
                     const linkCell = document.createElement('td');
